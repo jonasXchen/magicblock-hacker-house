@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
       // Filter results to find pages in our database with matching PublicKey
       for (const result of searchResponse.results) {
-        if (result.object === 'page' && result.parent.type === 'database_id' && result.parent.database_id === DATABASE_ID) {
+        if (result.object === 'page' && 'parent' in result && result.parent.type === 'database_id' && result.parent.database_id === DATABASE_ID) {
           existingPageId = result.id;
           break;
         }
