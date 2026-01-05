@@ -8,6 +8,7 @@ import { corporateColors } from './constants/colors';
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
 
   useEffect(() => {
     setIsLoaded(true);
@@ -53,30 +54,41 @@ export default function Home() {
          {/* Subtitle */}
          <div className="flex flex-col justify-center px-2">
             <p className="text-base sm:text-lg md:text-2xl text-center text-gray-300 max-w-xl">
-              Join MagicBlock team, get feedback, and push what's possible on Solana!
+              Meet MagicBlock team, get feedback, and push what's possible on Solana!
             </p>
          </div>
 
          {/* CTA Buttons */}
          <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 w-full sm:w-auto px-2">
           {/* Join Virtual Button */}
-          <Link
-            href="https://play.workadventu.re/@/magicblock/magicblock-office/startup"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group relative px-5 sm:px-8 py-3 sm:py-4 font-semibold text-base sm:text-lg rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-purple-500/50 transform hover:scale-105 active:scale-95 transition-all touch-manipulation flex items-center justify-center"
-          >
-            {/* Background gradient */}
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 group-hover:from-purple-500 group-hover:to-blue-500 transition-all duration-300"></div>
+          <div className="relative">
+            <Link
+              href="/auth"
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+              className="group relative px-5 sm:px-8 py-3 sm:py-4 font-semibold text-base sm:text-lg rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-purple-500/50 transform hover:scale-105 active:scale-95 transition-all touch-manipulation flex items-center justify-center"
+              >
+              {/* Background gradient */}
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 group-hover:from-purple-500 group-hover:to-blue-500 transition-all duration-300"></div>
+              
+              {/* Glow effect */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-purple-400 to-blue-400 blur-xl transition-opacity duration-300"></div>
+              
+              {/* Content */}
+              <div className="relative flex flex-col items-center justify-center h-10 sm:h-12 md:h-12">
+                <span className="text-white whitespace-nowrap">
+                  🚀 Join Virtual Office
+                </span>
+              </div>
+            </Link>
             
-            {/* Glow effect */}
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-purple-400 to-blue-400 blur-xl transition-opacity duration-300"></div>
-            
-            {/* Content */}
-            <span className="relative text-white whitespace-nowrap">
-              🚀 Join Virtual Office
-            </span>
-          </Link>
+            {/* Tooltip */}
+            {showTooltip && (
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-xs rounded whitespace-nowrap border border-purple-500/50">
+                Fill out the form to join
+              </div>
+            )}
+          </div>
 
           {/* Submit Project Button */}
           <div className="group relative px-5 sm:px-8 py-3 sm:py-4 font-semibold text-base sm:text-lg rounded-3xl overflow-hidden shadow-lg transition-all touch-manipulation opacity-50 cursor-not-allowed">
