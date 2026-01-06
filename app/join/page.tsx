@@ -9,12 +9,14 @@ import Link from 'next/link';
 export default function JoinForm() {
   const searchParams = useSearchParams();
   const pubkey = searchParams.get('pubkey');
+  const githubParam = searchParams.get('github');
 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     company: '',
     x: '',
+    github: githubParam || '',
     description: '',
   });
   const [loading, setLoading] = useState(false);
@@ -40,7 +42,7 @@ export default function JoinForm() {
     e.preventDefault();
     setError('');
 
-    if (!formData.name || !formData.email || !formData.company || !formData.x || !formData.description) {
+    if (!formData.name || !formData.email || !formData.company || !formData.x || !formData.github || !formData.description) {
       setError('Please fill out all fields');
       return;
     }
@@ -48,10 +50,15 @@ export default function JoinForm() {
     setLoading(true);
 
     try {
+      const submitData = {
+        ...formData,
+        github: `https://github.com/${formData.github}`,
+        publicKey: pubkey,
+      };
       const response = await fetch('/api/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, publicKey: pubkey }),
+        body: JSON.stringify(submitData),
       });
 
       if (!response.ok) {
@@ -190,6 +197,42 @@ export default function JoinForm() {
                   className="px-3 py-1.5 bg-white/10 border border-white/20 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
                   placeholder="@yourhandle"
                 />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label htmlFor="github" className="text-xs font-semibold text-gray-300">
+                  GitHub Handle
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    id="github"
+                    name="github"
+                    value={formData.github}
+                    onChange={handleChange}
+                    disabled={!!formData.github}
+                    required
+                    className="flex-1 px-3 py-1.5 bg-white/10 border border-white/20 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    placeholder="github-username"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (formData.github) {
+                        // Clear the field and redirect
+                        setFormData((prev) => ({
+                          ...prev,
+                          github: '',
+                        }));
+                      }
+                      const pubkeyValue = pubkey || 'unknown';
+                      window.location.href = `/api/auth/github?pubkey=${pubkeyValue}`;
+                    }}
+                    className="px-3 py-1.5 bg-white/10 border border-white/20 rounded-lg text-sm text-white hover:bg-white/20 transition-colors"
+                  >
+                    {formData.github ? 'Change' : 'Sign in'}
+                  </button>
+                </div>
               </div>
 
               {error && <div className="text-red-400 text-xs">{error}</div>}

@@ -14,10 +14,10 @@ const DATABASE_ID = process.env.NOTION_DATABASE_ID || '';
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, company, x, description, publicKey } = await request.json();
+    const { name, email, company, x, github, description, publicKey } = await request.json();
 
     // Validate required fields
-    if (!name || !email || !company || !x || !description || !publicKey) {
+    if (!name || !email || !company || !x || !github || !description || !publicKey) {
       return NextResponse.json(
         { error: 'All fields are required' },
         { status: 400 }
@@ -94,6 +94,9 @@ export async function POST(request: NextRequest) {
               },
             ],
           },
+          GitHub: {
+            url: github,
+          },
           Description: {
             rich_text: [
               {
@@ -156,6 +159,9 @@ export async function POST(request: NextRequest) {
               },
             },
           ],
+        },
+        GitHub: {
+          url: github,
         },
         Description: {
           rich_text: [

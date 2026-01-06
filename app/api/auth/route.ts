@@ -101,6 +101,7 @@ export async function POST(request: NextRequest) {
         properties.Email?.email &&
         properties.Project?.rich_text?.[0]?.plain_text &&
         properties['X Handle']?.rich_text?.[0]?.plain_text &&
+        properties.GitHub?.rich_text?.[0]?.plain_text &&
         properties.Description?.rich_text?.[0]?.plain_text;
 
       if (hasAllFields) {
