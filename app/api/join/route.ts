@@ -106,6 +106,11 @@ export async function POST(request: NextRequest) {
               },
             ],
           },
+          Event: {
+            select: {
+              name: '2026-01 Virtual Hacker House',
+            },
+          },
         },
       });
 
@@ -175,6 +180,11 @@ export async function POST(request: NextRequest) {
         'Joined At': {
           date: {
             start: new Date().toISOString(),
+          },
+        },
+        Event: {
+          select: {
+            name: '2026-01 Virtual Hacker House',
           },
         },
       },
