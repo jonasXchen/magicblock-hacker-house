@@ -22,6 +22,7 @@ export default function JoinFormContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [githubAuthenticated, setGithubAuthenticated] = useState(!!githubParam);
 
   useEffect(() => {
     if (!pubkey) {
@@ -44,6 +45,11 @@ export default function JoinFormContent() {
 
     if (!formData.name || !formData.email || !formData.company || !formData.x || !formData.github || !formData.description) {
       setError('Please fill out all fields');
+      return;
+    }
+
+    if (!githubAuthenticated) {
+      setError('Please sign in with GitHub first');
       return;
     }
 
@@ -224,6 +230,7 @@ export default function JoinFormContent() {
                           ...prev,
                           github: '',
                         }));
+                        setGithubAuthenticated(false);
                       }
                       const pubkeyValue = pubkey || 'unknown';
                       window.location.href = `/api/auth/github?pubkey=${pubkeyValue}`;
