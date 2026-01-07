@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sessions } from '@/lib/sessions';
 
 export async function GET(request: NextRequest) {
   try {
-    const sessionToken = request.cookies.get('auth_session')?.value;
+    const pubkey = request.cookies.get('auth_session')?.value;
     
     console.log('Verify session called');
-    console.log('Session token:', sessionToken);
+    console.log('Auth session pubkey:', pubkey);
 
-    if (!sessionToken) {
+    if (!pubkey) {
       console.log('No auth_session cookie found');
       return NextResponse.json(
         { authenticated: false },
@@ -16,20 +15,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Look up session in memory (in production, use a database)
-    const session = sessions.get(sessionToken);
-    
-    if (!session || session.expiresAt < Date.now()) {
-      console.log('Session not found or expired');
-      return NextResponse.json(
-        { authenticated: false },
-        { status: 401 }
-      );
-    }
-
-    console.log('Session valid, pubkey:', session.pubkey);
+    console.log('Session valid, pubkey:', pubkey);
     return NextResponse.json(
-      { authenticated: true, pubkey: session.pubkey },
+      { authenticated: true, pubkey },
       { status: 200 }
     );
   } catch (error) {

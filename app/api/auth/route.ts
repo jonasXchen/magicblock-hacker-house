@@ -2,8 +2,6 @@ import { Client } from '@notionhq/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { PublicKey } from '@solana/web3.js';
 import nacl from 'tweetnacl';
-import crypto from 'crypto';
-import { sessions } from '@/lib/sessions';
 
 const getNotionClient = () => {
   if (!process.env.NOTION_API_KEY) {
@@ -90,20 +88,15 @@ export async function POST(request: NextRequest) {
          // User doesn't exist, send to form
          console.log('User not found, sending to join form');
          
-         // Create session token instead of storing pubkey in cookie
-         const sessionToken = crypto.randomBytes(32).toString('hex');
-         const expiresAt = Date.now() + 3600000; // 1 hour
-         sessions.set(sessionToken, { pubkey: publicKey, expiresAt });
-         
          const response = NextResponse.json(
            { redirect: '/join' },
            { status: 200 }
          );
          
-         // Set httpOnly cookie with session token (not the pubkey)
+         // Set httpOnly cookie with pubkey
          response.cookies.set({
            name: 'auth_session',
-           value: sessionToken,
+           value: publicKey,
            httpOnly: true,
            secure: false,
            sameSite: 'lax',
@@ -111,7 +104,7 @@ export async function POST(request: NextRequest) {
            maxAge: 3600,
          });
          
-         console.log('Setting auth_session cookie with token for new user');
+         console.log('Setting auth_session cookie for new user:', publicKey);
          
          return response;
        }
@@ -132,11 +125,6 @@ export async function POST(request: NextRequest) {
 
        console.log('Has all fields:', hasAllFields);
 
-       // Create session token
-       const sessionToken = crypto.randomBytes(32).toString('hex');
-       const expiresAt = Date.now() + 3600000; // 1 hour
-       sessions.set(sessionToken, { pubkey: publicKey, expiresAt });
-
        const response = NextResponse.json(
          { 
            redirect: hasAllFields ? 'office' : '/join',
@@ -145,10 +133,10 @@ export async function POST(request: NextRequest) {
          { status: 200 }
        );
 
-       // Set httpOnly cookie with session token
+       // Set httpOnly cookie with pubkey
        response.cookies.set({
          name: 'auth_session',
-         value: sessionToken,
+         value: publicKey,
          httpOnly: true,
          secure: false,
          sameSite: 'lax',
@@ -156,7 +144,7 @@ export async function POST(request: NextRequest) {
          maxAge: 3600,
        });
        
-       console.log('Setting auth_session cookie with token');
+       console.log('Setting auth_session cookie:', publicKey);
        
        return response;
     } catch (notionError) {
