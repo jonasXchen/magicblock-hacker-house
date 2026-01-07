@@ -8,8 +8,35 @@ import Link from 'next/link';
 
 export default function JoinFormContent() {
   const searchParams = useSearchParams();
-  const pubkey = searchParams.get('pubkey');
   const githubParam = searchParams.get('github');
+  
+  // Get pubkey from cookie instead of URL
+  const [pubkey, setPubkey] = useState<string | null>(null);
+  const [cookieChecked, setCookieChecked] = useState(false);
+  
+  useEffect(() => {
+    const getCookiePubkey = () => {
+      const name = 'auth_pubkey=';
+      const decodedCookie = decodeURIComponent(document.cookie);
+      const cookieArray = decodedCookie.split(';');
+      for (let i = 0; i < cookieArray.length; i++) {
+        let cookie = cookieArray[i].trim();
+        if (cookie.indexOf(name) === 0) {
+          return cookie.substring(name.length);
+        }
+      }
+      return null;
+    };
+    
+    const cookiePubkey = getCookiePubkey();
+    setPubkey(cookiePubkey);
+    setCookieChecked(true);
+    
+    if (!cookiePubkey) {
+      // Redirect back to auth if no pubkey
+      window.location.href = '/auth';
+    }
+  }, []);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -25,10 +52,7 @@ export default function JoinFormContent() {
   const [githubAuthenticated, setGithubAuthenticated] = useState(!!githubParam);
 
   useEffect(() => {
-    if (!pubkey) {
-      // Redirect back to auth if no pubkey
-      window.location.href = '/auth';
-    } else {
+    if (cookieChecked && pubkey) {
       // Fetch existing user data if available
       const fetchUserData = async () => {
         try {
@@ -68,7 +92,7 @@ export default function JoinFormContent() {
       
       fetchUserData();
     }
-  }, [pubkey]);
+  }, [cookieChecked, pubkey]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -270,8 +294,9 @@ export default function JoinFormContent() {
                         }));
                         setGithubAuthenticated(false);
                       }
-                      const pubkeyValue = pubkey || 'unknown';
-                      window.location.href = `/api/auth/github?pubkey=${pubkeyValue}`;
+                      if (pubkey) {
+                        window.location.href = `/api/auth/github?pubkey=${pubkey}`;
+                      }
                     }}
                     className="px-3 py-1.5 bg-white/10 border border-white/20 rounded-lg text-sm text-white hover:bg-white/20 transition-colors flex items-center gap-2"
                   >

@@ -45,7 +45,8 @@ function AuthContent() {
         const data = await response.json();
         if (data.redirect === '/join') {
           // User doesn't exist, redirect to form
-          window.location.href = `/join?pubkey=${publicKey.toString()}`;
+          document.cookie = `auth_pubkey=${publicKey.toString()}; path=/; max-age=3600; SameSite=Lax`;
+          window.location.href = `/join`;
         } else if (data.redirect === 'office') {
           // User exists and form is complete, redirect to office
           window.location.href = 'https://play.workadventu.re/@/magicblock/magicblock-office/startup';
@@ -55,7 +56,8 @@ function AuthContent() {
       } else {
         const result = await response.json();
         if (result.redirect === '/join') {
-          window.location.href = `/join?pubkey=${publicKey.toString()}`;
+          document.cookie = `auth_pubkey=${publicKey.toString()}; path=/; max-age=3600; SameSite=Lax`;
+          window.location.href = `/join`;
         } else if (result.redirect === 'office') {
           window.location.href = 'https://play.workadventu.re/@/magicblock/magicblock-office/startup';
         }
