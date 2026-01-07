@@ -215,8 +215,7 @@ export default function JoinFormContent() {
                     id="github"
                     name="github"
                     value={formData.github}
-                    onChange={handleChange}
-                    disabled={!!formData.github}
+                    disabled
                     required
                     className="flex-1 px-3 py-1.5 bg-white/10 border border-white/20 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="github-username"
