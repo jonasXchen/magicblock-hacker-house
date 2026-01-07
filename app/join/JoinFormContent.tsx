@@ -28,6 +28,45 @@ export default function JoinFormContent() {
     if (!pubkey) {
       // Redirect back to auth if no pubkey
       window.location.href = '/auth';
+    } else {
+      // Fetch existing user data if available
+      const fetchUserData = async () => {
+        try {
+          const response = await fetch(`/api/user?pubkey=${pubkey}`);
+          const data = await response.json();
+          
+          if (data.user) {
+            const user = data.user;
+            // Extract github username from URL
+            let githubHandle = '';
+            if (user.github) {
+              const url = user.github.trim();
+              githubHandle = url.replace('https://github.com/', '').replace('http://github.com/', '').split('/')[0];
+              console.log('Extracted GitHub handle:', githubHandle, 'from:', url);
+            }
+            
+            console.log('Prefilling user data:', { ...user, github: githubHandle });
+            
+            setFormData((prev) => ({
+              ...prev,
+              name: user.name || prev.name,
+              email: user.email || prev.email,
+              company: user.company || prev.company,
+              x: user.x || prev.x,
+              github: githubHandle || prev.github,
+              description: user.description || prev.description,
+            }));
+            
+            if (githubHandle) {
+              setGithubAuthenticated(true);
+            }
+          }
+        } catch (err) {
+          console.error('Error fetching user data:', err);
+        }
+      };
+      
+      fetchUserData();
     }
   }, [pubkey]);
 
