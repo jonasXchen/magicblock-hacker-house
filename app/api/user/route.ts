@@ -50,6 +50,12 @@ export async function GET(request: NextRequest) {
               equals: publicKey,
             },
           },
+          sorts: [
+            {
+              property: 'Joined At',
+              direction: 'descending',
+            },
+          ],
         }),
       });
 
@@ -59,7 +65,7 @@ export async function GET(request: NextRequest) {
 
       if (data.results && data.results.length > 0) {
         userPage = data.results[0];
-        console.log('Found matching user page!');
+        console.log('Found matching user page (latest)!');
       }
     } catch (err) {
       console.error('Error querying database:', err);

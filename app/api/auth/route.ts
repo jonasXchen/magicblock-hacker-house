@@ -2,6 +2,8 @@ import { Client } from '@notionhq/client';
 import { NextRequest, NextResponse } from 'next/server';
 import { PublicKey } from '@solana/web3.js';
 import nacl from 'tweetnacl';
+import crypto from 'crypto';
+import { sessions } from '@/lib/sessions';
 
 const getNotionClient = () => {
   if (!process.env.NOTION_API_KEY) {
@@ -85,38 +87,78 @@ export async function POST(request: NextRequest) {
       }
 
       if (!userPage) {
-        // User doesn't exist, send to form
-        return NextResponse.json(
-          { redirect: '/join' },
-          { status: 200 }
-        );
-      }
+         // User doesn't exist, send to form
+         console.log('User not found, sending to join form');
+         
+         // Create session token instead of storing pubkey in cookie
+         const sessionToken = crypto.randomBytes(32).toString('hex');
+         const expiresAt = Date.now() + 3600000; // 1 hour
+         sessions.set(sessionToken, { pubkey: publicKey, expiresAt });
+         
+         const response = NextResponse.json(
+           { redirect: '/join' },
+           { status: 200 }
+         );
+         
+         // Set httpOnly cookie with session token (not the pubkey)
+         response.cookies.set({
+           name: 'auth_session',
+           value: sessionToken,
+           httpOnly: true,
+           secure: false,
+           sameSite: 'lax',
+           path: '/',
+           maxAge: 3600,
+         });
+         
+         console.log('Setting auth_session cookie with token for new user');
+         
+         return response;
+       }
 
-      // Get full page details to check all properties
-      const fullPage = await notion.pages.retrieve({ page_id: userPage.id });
-      const properties = (fullPage as any).properties;
+       console.log('User found, retrieving full page');
 
-      const hasAllFields =
-        properties.Name?.title?.[0]?.plain_text &&
-        properties.Email?.email &&
-        properties.Project?.rich_text?.[0]?.plain_text &&
-        properties['X Handle']?.rich_text?.[0]?.plain_text &&
-        properties.GitHub?.rich_text?.[0]?.plain_text &&
-        properties.Description?.rich_text?.[0]?.plain_text;
+       // Get full page details to check all properties
+       const fullPage = await notion.pages.retrieve({ page_id: userPage.id });
+       const properties = (fullPage as any).properties;
 
-      if (hasAllFields) {
-        // All fields filled, go to office
-        return NextResponse.json(
-          { redirect: 'office' },
-          { status: 200 }
-        );
-      } else {
-        // Incomplete form, send back to form to fill missing fields
-        return NextResponse.json(
-          { redirect: '/join' },
-          { status: 200 }
-        );
-      }
+       const hasAllFields =
+         properties.Name?.title?.[0]?.plain_text &&
+         properties.Email?.email &&
+         properties.Project?.rich_text?.[0]?.plain_text &&
+         properties['X Handle']?.rich_text?.[0]?.plain_text &&
+         properties.GitHub?.rich_text?.[0]?.plain_text &&
+         properties.Description?.rich_text?.[0]?.plain_text;
+
+       console.log('Has all fields:', hasAllFields);
+
+       // Create session token
+       const sessionToken = crypto.randomBytes(32).toString('hex');
+       const expiresAt = Date.now() + 3600000; // 1 hour
+       sessions.set(sessionToken, { pubkey: publicKey, expiresAt });
+
+       const response = NextResponse.json(
+         { 
+           redirect: hasAllFields ? 'office' : '/join',
+           pubkey: publicKey 
+         },
+         { status: 200 }
+       );
+
+       // Set httpOnly cookie with session token
+       response.cookies.set({
+         name: 'auth_session',
+         value: sessionToken,
+         httpOnly: true,
+         secure: false,
+         sameSite: 'lax',
+         path: '/',
+         maxAge: 3600,
+       });
+       
+       console.log('Setting auth_session cookie with token');
+       
+       return response;
     } catch (notionError) {
       console.error('Notion query error:', notionError);
       // If Notion query fails, redirect to form

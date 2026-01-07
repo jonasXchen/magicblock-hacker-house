@@ -15,27 +15,27 @@ export default function JoinFormContent() {
   const [cookieChecked, setCookieChecked] = useState(false);
   
   useEffect(() => {
-    const getCookiePubkey = () => {
-      const name = 'auth_pubkey=';
-      const decodedCookie = decodeURIComponent(document.cookie);
-      const cookieArray = decodedCookie.split(';');
-      for (let i = 0; i < cookieArray.length; i++) {
-        let cookie = cookieArray[i].trim();
-        if (cookie.indexOf(name) === 0) {
-          return cookie.substring(name.length);
+    // Verify session with server
+    const verifySession = async () => {
+      try {
+        const response = await fetch('/api/verify-session');
+        const data = await response.json();
+        
+        if (data.authenticated && data.pubkey) {
+          setPubkey(data.pubkey);
+        } else {
+          // Invalid session, redirect to auth
+          window.location.href = '/auth';
         }
+      } catch (err) {
+        console.error('Session verification failed:', err);
+        window.location.href = '/auth';
+      } finally {
+        setCookieChecked(true);
       }
-      return null;
     };
     
-    const cookiePubkey = getCookiePubkey();
-    setPubkey(cookiePubkey);
-    setCookieChecked(true);
-    
-    if (!cookiePubkey) {
-      // Redirect back to auth if no pubkey
-      window.location.href = '/auth';
-    }
+    verifySession();
   }, []);
 
   const [formData, setFormData] = useState({
